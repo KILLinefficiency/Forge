@@ -10,9 +10,7 @@ import (
   "encoding/json"
 )
 
-var forgeMe map[string]interface{}
-var heads map[string]interface{}
-var settings map[string]interface{}
+var forgeMe, heads, settings map[string]interface{}
 
 var defaultHead string
 var verbose bool = true
@@ -78,6 +76,8 @@ func main() {
   for _, head := range argHeads {
     if keyExists(head, heads) {
       sliceExec(heads[head].([]interface{}))
+    } else {
+      fmt.Printf("%s: head does not exist.\n", head)
     }
   }
 
