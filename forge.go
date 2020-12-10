@@ -10,6 +10,7 @@ import (
 )
 
 var forgeMe map[string]interface{}
+var heads map[string]interface{}
 
 func keyExists(reqKey string, data map[string]interface{}) bool {
   for key, _ := range data {
@@ -34,14 +35,21 @@ func main() {
   jsonStream, err := ioutil.ReadFile("forgeMe")
   if err != nil {
     fmt.Println("No forgeMe file found.")
+    os.Exit(1)
   }
 
   json.Unmarshal(jsonStream, &forgeMe)
 
-  heads := os.Args[1:]
-  for _, head := range heads {
-    if keyExists(head, forgeMe) {
-      strExec(forgeMe[head].(string))
+  heads = forgeMe["heads"].(map[string]interface{})
+
+  argHeads := os.Args[1:]
+  for _, head := range argHeads {
+    if keyExists(head, heads) {
+      headCommands := heads[head].([]interface{})
+      for _, execCommands := range headCommands {
+        strExec(execCommands.(string))
+      }
     }
   }
+
 }
