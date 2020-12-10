@@ -45,10 +45,13 @@ func sliceExec(sliceShellCommands []interface{}) {
 }
 
 func main() {
-  jsonStream, err := ioutil.ReadFile("forgeMe")
+  jsonStream, err := ioutil.ReadFile("forgeMe.json")
   if err != nil {
-    fmt.Println("No forgeMe file found.")
-    os.Exit(1)
+    jsonStream, err = ioutil.ReadFile("forgeMe")
+    if err != nil {
+      fmt.Println("No forgeMe or forgeMe.json file found.")
+      os.Exit(1)
+    }
   }
 
   json.Unmarshal(jsonStream, &forgeMe)
