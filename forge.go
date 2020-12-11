@@ -3,6 +3,7 @@ package main
 import (
   "os"
   "fmt"
+  "bytes"
   "os/exec"
   "strings"
   "strconv"
@@ -11,6 +12,11 @@ import (
 )
 
 var forgeMe, heads, settings map[string]interface{}
+
+var RED string = "\033[1m\033[31m"
+var GREEN string = "\033[1m\033[32m"
+var YELLOW string = "\033[1m\033[33m"
+var DEFAULT string = "\033[0m"
 
 var defaultHead string
 var verbose bool = true
@@ -25,15 +31,20 @@ func keyExists(reqKey string, data map[string]interface{}) bool {
 }
 
 func strExec(shellCommand string) {
+  var sOut, sErr bytes.Buffer
+  if verbose {
+    fmt.Printf("%sCOMMAND:%s %s\n", YELLOW, DEFAULT, shellCommand)
+  }
   commandArgs := strings.Split(shellCommand, " ")
   commandExec := exec.Command(commandArgs[0], commandArgs[1:]...)
-  _, err := commandExec.Output()
-  if err != nil && verbose {
-    fmt.Println("STDERR")
-    // fmt.Printf("%s", commandExec.Stderr)
+  commandExec.Stdout = &sOut
+  commandExec.Stderr = &sErr
+  exitCode := commandExec.Run()
+  if exitCode != nil && verbose {
+    fmt.Printf("%sSTDERR:%s\n%s%s%s%s\n\n", RED, DEFAULT, sErr.String(), RED, exitCode, DEFAULT)
   }
-  if verbose {
-    fmt.Printf("%v", commandExec.Stdout)
+  if exitCode == nil && verbose {
+    fmt.Printf("%sSTDOUT:%s\n%s\n", GREEN, DEFAULT, sOut.String())
   }
 }
 
@@ -74,6 +85,7 @@ func main() {
     }
   }
 
+  fmt.Printf("\n")
   if keyExists("!heads", forgeMe) {
     heads = forgeMe["!heads"].(map[string]interface{})
     if len(os.Args) == 1 {
@@ -82,6 +94,7 @@ func main() {
   }
 
   argHeads := os.Args[1:]
+
   for _, head := range argHeads {
     if keyExists(head, heads) {
       sliceExec(heads[head].([]interface{}))
