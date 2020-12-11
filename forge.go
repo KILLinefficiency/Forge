@@ -29,7 +29,8 @@ func strExec(shellCommand string) {
   commandExec := exec.Command(commandArgs[0], commandArgs[1:]...)
   _, err := commandExec.Output()
   if err != nil && verbose {
-    fmt.Printf("%s", commandExec.Stderr)
+    fmt.Println("STDERR")
+    // fmt.Printf("%s", commandExec.Stderr)
   }
   if verbose {
     fmt.Printf("%v", commandExec.Stdout)
@@ -38,7 +39,15 @@ func strExec(shellCommand string) {
 
 func sliceExec(sliceShellCommands []interface{}) {
   for _, scriptLine := range sliceShellCommands {
-    strExec(scriptLine.(string))
+    if scriptLine.(string)[0] == '^' {
+      refHead := scriptLine.(string)[1:]
+      refHeadCommands := forgeMe["!heads"].(map[string]interface{})[refHead].([]interface{})
+      for _, refHeadCommand := range refHeadCommands {
+        strExec(refHeadCommand.(string))
+      }
+    } else {
+      strExec(scriptLine.(string))
+    }
   }
 }
 
