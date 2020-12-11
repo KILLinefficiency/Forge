@@ -7,6 +7,7 @@ import (
   "os/exec"
   "strings"
   "strconv"
+  "runtime"
   "io/ioutil"
   "encoding/json"
 )
@@ -63,6 +64,10 @@ func sliceExec(sliceShellCommands []interface{}) {
 }
 
 func main() {
+  if runtime.GOOS == "windows" {
+    RED, GREEN, YELLOW, DEFAULT = "", "", "", ""
+  }
+
   jsonStream, err := ioutil.ReadFile("forgeMe.json")
   if err != nil {
     jsonStream, err = ioutil.ReadFile("forgeMe")
