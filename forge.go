@@ -3,6 +3,7 @@ package main
 import (
   "os"
   "fmt"
+  "time"
   "bytes"
   "os/exec"
   "strings"
@@ -88,6 +89,22 @@ func main() {
     if keyExists("verbose", settings) {
       verbose, _ = strconv.ParseBool(settings["verbose"].(string))
     }
+    if keyExists("every", settings) {
+      loop := settings["every"].([]interface{})
+      secTime, _ := strconv.Atoi(loop[0].(string))
+      var everyHead string = loop[1].(string)
+      if len(os.Args) > 1 {
+        if os.Args[1] == everyHead {
+          allHeads := forgeMe["!heads"].(map[string]interface{})
+          headCommands := allHeads[everyHead].([]interface{})
+          fmt.Printf("\n")
+          for true {
+            sliceExec(headCommands)
+            time.Sleep(time.Duration(secTime) * time.Second)
+          }
+        }
+      }
+    }
   }
 
   fmt.Printf("\n")
@@ -95,6 +112,16 @@ func main() {
     heads = forgeMe["!heads"].(map[string]interface{})
     if len(os.Args) == 1 {
       sliceExec(heads[defaultHead].([]interface{}))
+    }
+  }
+
+  if len(os.Args) > 1 {
+    if os.Args[1] == "--heads" {
+      for eachHead, _ := range heads {
+        fmt.Println(eachHead)
+      }
+      fmt.Printf("\n")
+      os.Exit(0)
     }
   }
 
