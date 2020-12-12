@@ -14,6 +14,7 @@ import (
 )
 
 var forgeMe, variables, settings, heads map[string]interface{}
+var evalVars = map[string]string{}
 
 var RED string = "\033[1m\033[31m"
 var GREEN string = "\033[1m\033[32m"
@@ -70,7 +71,6 @@ func sliceExec(sliceShellCommands []interface{}) {
 }
 
 func main() {
-  evalVars := make(map[string]string)
 
   if runtime.GOOS == "windows" {
     RED, GREEN, YELLOW, DEFAULT = "", "", "", ""
