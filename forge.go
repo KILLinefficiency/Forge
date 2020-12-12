@@ -34,6 +34,11 @@ func keyExists(reqKey string, data map[string]interface{}) bool {
 
 func strExec(shellCommand string) {
   var sOut, sErr bytes.Buffer
+
+  for replaceKey, replaceValue := range evalVars {
+    shellCommand = strings.Replace(shellCommand, "%" + replaceKey, replaceValue, -1)
+  }
+
   if verbose {
     fmt.Printf("%sCOMMAND:%s %s\n", YELLOW, DEFAULT, shellCommand)
   }
