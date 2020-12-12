@@ -13,7 +13,7 @@ import (
   "encoding/json"
 )
 
-var forgeMe, variables, settings, heads map[string]interface{}
+var forgeMe, heads, settings, variables, conditions map[string]interface{}
 var evalVars = map[string]string{}
 
 var RED string = "\033[1m\033[31m"
@@ -31,6 +31,16 @@ func keyExists(reqKey string, data map[string]interface{}) bool {
     }
   }
   return false
+}
+
+func filesExists(fileNames []interface{}) bool {
+  for _, singleFile := range fileNames {
+    _, err := os.Stat(singleFile.(string))
+    if err != nil {
+      return false
+    }
+  }
+  return true
 }
 
 func strExec(shellCommand string) {
@@ -130,6 +140,20 @@ func main() {
     if len(os.Args) == 1 {
       sliceExec(heads[defaultHead].([]interface{}))
     }
+  }
+
+  if keyExists("!conditions", forgeMe) {
+    conditions = forgeMe["!conditions"].(map[string]interface{})
+    for conditionalHead, conditions := range conditions {
+      if keyExists(conditionalHead, heads) {
+        reqFiles := conditions.([]interface{})
+        if !filesExists(reqFiles) {
+          delete(heads, conditionalHead)
+          //sliceExec(heads[conditionalHead].([]interface{}))
+        }
+      }
+    }
+    // os.Exit(0)
   }
 
   if len(os.Args) > 1 {
