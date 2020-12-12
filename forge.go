@@ -149,11 +149,9 @@ func main() {
         reqFiles := conditions.([]interface{})
         if !filesExists(reqFiles) {
           delete(heads, conditionalHead)
-          //sliceExec(heads[conditionalHead].([]interface{}))
         }
       }
     }
-    // os.Exit(0)
   }
 
   if len(os.Args) > 1 {
