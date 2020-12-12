@@ -13,7 +13,7 @@ import (
   "encoding/json"
 )
 
-var forgeMe, heads, settings map[string]interface{}
+var forgeMe, variables, settings, heads map[string]interface{}
 
 var RED string = "\033[1m\033[31m"
 var GREEN string = "\033[1m\033[32m"
@@ -65,6 +65,8 @@ func sliceExec(sliceShellCommands []interface{}) {
 }
 
 func main() {
+  evalVars := make(map[string]string)
+
   if runtime.GOOS == "windows" {
     RED, GREEN, YELLOW, DEFAULT = "", "", "", ""
   }
@@ -79,6 +81,16 @@ func main() {
   }
 
   json.Unmarshal(jsonStream, &forgeMe)
+
+  if keyExists("!variables", forgeMe) {
+    variables = forgeMe["!variables"].(map[string]interface{})
+    for varKey, varValue := range variables {
+      varTokens := strings.Split(varValue.(string), " ")
+      commandVar := exec.Command(varTokens[0], varTokens[1:]...)
+      varStdout, _ := commandVar.Output()
+      evalVars[varKey] = string(varStdout)
+    }
+  }
 
   if keyExists("!settings", forgeMe) {
     settings = forgeMe["!settings"].(map[string]interface{})
@@ -131,7 +143,7 @@ func main() {
     if keyExists(head, heads) {
       sliceExec(heads[head].([]interface{}))
     } else {
-      fmt.Printf("%s: head does not exist.\n", head)
+      fmt.Printf("%s: head does not exist.\n\n", head)
     }
   }
 
