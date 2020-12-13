@@ -103,7 +103,7 @@ func main() {
       varTokens := strings.Split(varValue.(string), " ")
       commandVar := exec.Command(varTokens[0], varTokens[1:]...)
       varStdout, _ := commandVar.Output()
-      evalVars[varKey] = string(varStdout)
+      evalVars[varKey] = strings.TrimSpace(string(varStdout))
     }
   }
 
