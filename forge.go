@@ -15,6 +15,7 @@ import (
 
 var forgeMe, heads, settings, variables, conditions map[string]interface{}
 var evalVars = map[string]string{}
+var delimiter string = " "
 
 var RED string = "\033[1m\033[31m"
 var GREEN string = "\033[1m\033[32m"
@@ -43,43 +44,6 @@ func filesExists(fileNames []interface{}) bool {
   return true
 }
 
-func strExec(shellCommand string) {
-  var sOut, sErr bytes.Buffer
-
-  for replaceKey, replaceValue := range evalVars {
-    shellCommand = strings.Replace(shellCommand, "%" + replaceKey, replaceValue, -1)
-  }
-
-  if verbose {
-    fmt.Printf("%sCOMMAND:%s %s\n", YELLOW, DEFAULT, shellCommand)
-  }
-  commandArgs := strings.Split(shellCommand, " ")
-  commandExec := exec.Command(commandArgs[0], commandArgs[1:]...)
-  commandExec.Stdout = &sOut
-  commandExec.Stderr = &sErr
-  exitCode := commandExec.Run()
-  if exitCode != nil && verbose {
-    fmt.Printf("%sSTDERR:%s\n%s%s%s%s\n\n", RED, DEFAULT, sErr.String(), RED, exitCode, DEFAULT)
-  }
-  if exitCode == nil && verbose {
-    fmt.Printf("%sSTDOUT:%s\n%s\n", GREEN, DEFAULT, sOut.String())
-  }
-}
-
-func sliceExec(sliceShellCommands []interface{}) {
-  for _, scriptLine := range sliceShellCommands {
-    if scriptLine.(string)[0] == '^' {
-      refHead := scriptLine.(string)[1:]
-      refHeadCommands := forgeMe["!heads"].(map[string]interface{})[refHead].([]interface{})
-      for _, refHeadCommand := range refHeadCommands {
-        strExec(refHeadCommand.(string))
-      }
-    } else {
-      strExec(scriptLine.(string))
-    }
-  }
-}
-
 func main() {
 
   if runtime.GOOS == "windows" {
@@ -97,19 +61,12 @@ func main() {
 
   json.Unmarshal(jsonStream, &forgeMe)
 
-  if keyExists("!variables", forgeMe) {
-    variables = forgeMe["!variables"].(map[string]interface{})
-    for varKey, varValue := range variables {
-      varTokens := strings.Split(varValue.(string), " ")
-      commandVar := exec.Command(varTokens[0], varTokens[1:]...)
-      varStdout, _ := commandVar.Output()
-      evalVars[varKey] = strings.TrimSpace(string(varStdout))
-    }
-  }
-
   if keyExists("!settings", forgeMe) {
     settings = forgeMe["!settings"].(map[string]interface{})
 
+    if keyExists("delimiter", settings) {
+      delimiter = settings["delimiter"].(string)
+    }
     if keyExists("default", settings) {
       defaultHead = settings["default"].(string)
     }
@@ -131,6 +88,16 @@ func main() {
           }
         }
       }
+    }
+  }
+
+  if keyExists("!variables", forgeMe) {
+    variables = forgeMe["!variables"].(map[string]interface{})
+    for varKey, varValue := range variables {
+      varTokens := strings.Split(varValue.(string), delimiter)
+      commandVar := exec.Command(varTokens[0], varTokens[1:]...)
+      varStdout, _ := commandVar.Output()
+      evalVars[varKey] = strings.TrimSpace(string(varStdout))
     }
   }
 
@@ -174,4 +141,41 @@ func main() {
     }
   }
 
+}
+
+func strExec(shellCommand string) {
+  var sOut, sErr bytes.Buffer
+
+  for replaceKey, replaceValue := range evalVars {
+    shellCommand = strings.Replace(shellCommand, "%" + replaceKey, replaceValue, -1)
+  }
+
+  if verbose {
+    fmt.Printf("%sCOMMAND:%s %s\n", YELLOW, DEFAULT, shellCommand)
+  }
+  commandArgs := strings.Split(shellCommand, delimiter)
+  commandExec := exec.Command(commandArgs[0], commandArgs[1:]...)
+  commandExec.Stdout = &sOut
+  commandExec.Stderr = &sErr
+  exitCode := commandExec.Run()
+  if exitCode != nil && verbose {
+    fmt.Printf("%sSTDERR:%s\n%s%s%s%s\n\n", RED, DEFAULT, sErr.String(), RED, exitCode, DEFAULT)
+  }
+  if exitCode == nil && verbose {
+    fmt.Printf("%sSTDOUT:%s\n%s\n", GREEN, DEFAULT, sOut.String())
+  }
+}
+
+func sliceExec(sliceShellCommands []interface{}) {
+  for _, scriptLine := range sliceShellCommands {
+    if scriptLine.(string)[0] == '^' {
+      refHead := scriptLine.(string)[1:]
+      refHeadCommands := heads[refHead].([]interface{})
+      for _, refHeadCommand := range refHeadCommands {
+        strExec(refHeadCommand.(string))
+      }
+    } else {
+      strExec(scriptLine.(string))
+    }
+  }
 }
