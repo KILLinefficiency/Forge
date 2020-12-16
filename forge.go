@@ -13,10 +13,15 @@ import (
   "encoding/json"
 )
 
+// Map for holding data from JSON file.
 var forgeMe, heads, settings, variables, conditions map[string]interface{}
+// Map of the evaluated variables.
 var evalVars = map[string]string{}
+// Delimiter for shell commands.
 var delimiter string = " "
 
+
+// Colors used in the output after running Forge.
 var RED string = "\033[1m\033[31m"
 var GREEN string = "\033[1m\033[32m"
 var YELLOW string = "\033[1m\033[33m"
@@ -25,6 +30,7 @@ var DEFAULT string = "\033[0m"
 var defaultHead string
 var verbose bool = true
 
+// keyExists() checks if a key exists in a map.
 func keyExists(reqKey string, data map[string]interface{}) bool {
   for key, _ := range data {
     if key == reqKey {
@@ -34,6 +40,7 @@ func keyExists(reqKey string, data map[string]interface{}) bool {
   return false
 }
 
+// fileExists() checks if a file or directory exists or not.
 func filesExists(fileNames []interface{}) bool {
   for _, singleFile := range fileNames {
     _, err := os.Stat(singleFile.(string))
@@ -46,10 +53,12 @@ func filesExists(fileNames []interface{}) bool {
 
 func main() {
 
+  // Resets all the colors if Forge is running on Windows.
   if runtime.GOOS == "windows" {
     RED, GREEN, YELLOW, DEFAULT = "", "", "", ""
   }
 
+  // Reads the JSON file (forgeMe.json or forgeMe) as an array of bytes.
   jsonStream, err := ioutil.ReadFile("forgeMe.json")
   if err != nil {
     jsonStream, err = ioutil.ReadFile("forgeMe")
@@ -59,8 +68,10 @@ func main() {
     }
   }
 
+  // Unmarshals the JSON file in the forgeMe map.
   json.Unmarshal(jsonStream, &forgeMe)
 
+  // Checks for all the specified settings one by one.
   if keyExists("!settings", forgeMe) {
     settings = forgeMe["!settings"].(map[string]interface{})
 
@@ -82,6 +93,7 @@ func main() {
           allHeads := forgeMe["!heads"].(map[string]interface{})
           headCommands := allHeads[everyHead].([]interface{})
           fmt.Printf("\n")
+          // Keeps running the same shell command(s) after a specific time forever.
           for true {
             sliceExec(headCommands)
             time.Sleep(time.Duration(secTime) * time.Second)
@@ -91,6 +103,7 @@ func main() {
     }
   }
 
+  // Evaluates the shell commands and uses the STDOUT as variables in a map.
   if keyExists("!variables", forgeMe) {
     variables = forgeMe["!variables"].(map[string]interface{})
     for varKey, varValue := range variables {
@@ -102,13 +115,16 @@ func main() {
   }
 
   fmt.Printf("\n")
+  // All the heads are executed here.
   if keyExists("!heads", forgeMe) {
     heads = forgeMe["!heads"].(map[string]interface{})
+    // Runs a default head if no heads are specified as command-line argument(s).
     if len(os.Args) == 1 {
       sliceExec(heads[defaultHead].([]interface{}))
     }
   }
 
+  // Runs one or multiple heads only if certain specified files/directories exists.
   if keyExists("!conditions", forgeMe) {
     conditions = forgeMe["!conditions"].(map[string]interface{})
     for conditionalHead, conditions := range conditions {
@@ -121,6 +137,7 @@ func main() {
     }
   }
 
+  // Lists all the possible heads for the forgeMe.json file.
   if len(os.Args) > 1 {
     if os.Args[1] == "--heads" {
       for eachHead, _ := range heads {
@@ -131,8 +148,10 @@ func main() {
     }
   }
 
+  // Reads all the heads supplied as command-line arguments.
   argHeads := os.Args[1:]
 
+  // Executes each spcified head one by one, shows error if the head is not found.
   for _, head := range argHeads {
     if keyExists(head, heads) {
       sliceExec(heads[head].([]interface{}))
@@ -143,38 +162,50 @@ func main() {
 
 }
 
+// Runs the passed string as a shell command.
 func strExec(shellCommand string) {
+  // Buffers for storing STDOUT and STDERR.
   var sOut, sErr bytes.Buffer
 
+  // Replace referred variables with their actual values.
   for replaceKey, replaceValue := range evalVars {
     shellCommand = strings.Replace(shellCommand, "%" + replaceKey, replaceValue, -1)
   }
 
+  // Displays command.
   if verbose {
     fmt.Printf("%sCOMMAND:%s %s\n", YELLOW, DEFAULT, shellCommand)
   }
+  // Runs a shell command.
   commandArgs := strings.Split(shellCommand, delimiter)
   commandExec := exec.Command(commandArgs[0], commandArgs[1:]...)
+  // Sets STDOUT and STDERR to the address of respective buffers.
   commandExec.Stdout = &sOut
   commandExec.Stderr = &sErr
   exitCode := commandExec.Run()
+  // Displays STDERR.
   if exitCode != nil && verbose {
     fmt.Printf("%sSTDERR:%s\n%s%s%s%s\n\n", RED, DEFAULT, sErr.String(), RED, exitCode, DEFAULT)
   }
+  // Displays STDOUT.
   if exitCode == nil && verbose {
     fmt.Printf("%sSTDOUT:%s\n%s\n", GREEN, DEFAULT, sOut.String())
   }
 }
 
+// Runs all the strings one by one as shell commands from the passed array.
 func sliceExec(sliceShellCommands []interface{}) {
   for _, scriptLine := range sliceShellCommands {
+    // Checks if another head is referred.
     if scriptLine.(string)[0] == '^' {
       refHead := scriptLine.(string)[1:]
       refHeadCommands := heads[refHead].([]interface{})
+      // Executes the commands from the referred head if it exists.
       for _, refHeadCommand := range refHeadCommands {
         strExec(refHeadCommand.(string))
       }
     } else {
+      // Executes the string as a shell command.
       strExec(scriptLine.(string))
     }
   }
