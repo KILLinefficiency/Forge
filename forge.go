@@ -84,6 +84,7 @@ func main() {
     if keyExists("verbose", settings) {
       verbose, _ = strconv.ParseBool(settings["verbose"].(string))
     }
+    // Runs a specific head after every interval.
     if keyExists("every", settings) {
       loop := settings["every"].([]interface{})
       secTime, _ := strconv.Atoi(loop[0].(string))
@@ -109,6 +110,7 @@ func main() {
     for varKey, varValue := range variables {
       varTokens := strings.Split(varValue.(string), delimiter)
       commandVar := exec.Command(varTokens[0], varTokens[1:]...)
+      // Fetches the STDOUT of the shell command.
       varStdout, _ := commandVar.Output()
       evalVars[varKey] = strings.TrimSpace(string(varStdout))
     }
@@ -130,6 +132,7 @@ func main() {
     for conditionalHead, conditions := range conditions {
       if keyExists(conditionalHead, heads) {
         reqFiles := conditions.([]interface{})
+        // Checks if the required files exist or not.
         if !filesExists(reqFiles) {
           delete(heads, conditionalHead)
         }
