@@ -121,13 +121,10 @@ func main() {
   }
 
   fmt.Printf("\n")
-  // All the heads are executed here.
+
+  // Gets all the heads.
   if keyExists("!heads", forgeMe) {
     heads = forgeMe["!heads"].(map[string]interface{})
-    // Runs a default head if no heads are specified as command-line argument(s).
-    if len(os.Args) == 1 {
-      sliceExec(heads[defaultHead].([]interface{}))
-    }
   }
 
   // Runs one or multiple heads only if certain specified files/directories exists.
@@ -137,11 +134,17 @@ func main() {
       if keyExists(conditionalHead, heads) {
         reqFiles := conditions.([]interface{})
         // Checks if the required files exist or not.
-        if !filesExists(reqFiles) {
+        if !filesExists(reqFiles) && keyExists(conditionalHead, heads) {
           delete(heads, conditionalHead)
+          defaultHead = ""
         }
       }
     }
+  }
+
+  // Runs a default head if no heads are specified as command-line argument(s).
+  if len(os.Args) == 1 && defaultHead != "" {
+    sliceExec(heads[defaultHead].([]interface{}))
   }
 
   // Lists all the possible heads for the forgeMe.json file.
