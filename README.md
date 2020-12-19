@@ -38,10 +38,11 @@ Forge instructions are written in JSON format. These instructions are to be spec
 The ``forgeMe.json`` file consists of three keys:
 
 * heads
+* conditions
 * variables
 * settings
 
-Each of these three keys start with ``!`` and have their own JSON objects as values
+Each of these four keys start with ``!`` and have their own JSON objects as values
 
 ```json
 {
@@ -94,3 +95,34 @@ You can also chain multiple heads inside a head. Other heads can be referenced i
 
 Here, the head called "**clean**" calls two heads, **remove** and **alert** in the specified order and then runs a shell command.
 A head which contains one or more referenced heads can also contain a shell command.
+
+You can see a list of all available heads with:
+
+```
+$ forge --heads
+```
+
+<br>
+### !conditions
+
+The **!conditions** key has a JSON object as it's value.
+
+**!conditions** allows a head to be executed only if specified files are present on the system. If all of the specified files are not present then the head will just be deleted.
+
+The **!conditions** JSON object has the name of the heads a it's keys and an array as it's value. You can have multiple conditional heads in **!conditions**. This array contains the addresses of the strictly existing files required by the head as it's values.
+
+```json
+{
+	"!conditions": {
+		"build": ["main.c", "my_lib.h"]
+	},
+	
+	"!heads": {
+		"build": ["gcc main.c -o main", "echo Compiled Successfully!"]
+	}
+}
+```
+
+In this example, the Forge will only be able to execute the **build** head if the files **main.c** and **my_lib.h** are present. You can pass relative or absoulte address of the files in the array.
+
+If the files do not exist, then the head(s) will disappear from the list of heads that you get by running ``forge --heads``.
