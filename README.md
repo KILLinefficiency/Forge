@@ -6,7 +6,8 @@ Forge is an automation tool written in Go. It's much similar to GNU Make.
 The instructions that Forge executes are written in JSON format in a ``forgeMe.json`` or ``forgeMe`` file.
 
 <br>
-### Getting Forge
+
+## Getting Forge
 
 Forge can be cloned from GitHub.
 ```
@@ -15,7 +16,7 @@ $ git clone https://www.github.com/KILLinefficiency/Forge.git
 
 <br>
 
-### Installing Forge
+## Installing Forge
 
 Forge can be compiled easily with:
 ```
@@ -34,18 +35,20 @@ Users running shells other than Bash can make changes to the ``install.sh`` scri
 
 <br>
 
-### Getting Started
+## Getting Started
 
 Forge instructions are written in JSON format. These instructions are to be specified in a ``forgeMe.json`` or ``forgeMe`` file. Forge searches for the ``forgeMe.json`` file if files with both names are present in the directory.
 
-The ``forgeMe.json`` file consists of three keys:
+The ``forgeMe.json`` file consists of four keys:
 
-* heads
-* conditions
-* variables
 * settings
+* variables
+* conditions
+* heads
 
-Each of these four keys start with ``!`` and have their own JSON objects as values
+Each of these four keys start with ``!`` and have their own JSON objects as values.
+
+This is the correct order of the keys:
 
 ```json
 {
@@ -57,7 +60,7 @@ Each of these four keys start with ``!`` and have their own JSON objects as valu
 ```
 <br>
 
-#### !heads
+### !heads
 
 A head is a collection of shell commands which are run one by one. The ``!heads`` JSON object can contain multiple heads with an array as their values.
 
@@ -93,7 +96,7 @@ You can also chain multiple heads inside a head. Other heads can be referenced i
 		"build": ["gcc main.c -o main", "echo Compiled Successfully!"],
 		"remove": ["rm main"],
 		"alert": ["echo main removed."],
-		"clean": ["^remove", "^alert", "echo Done."]
+		"clean": ["^remove", "^alert", "echo Done"]
 	}
 }
 ```
@@ -117,6 +120,8 @@ The **!conditions** key has a JSON object as it's value.
 
 The **!conditions** JSON object has the name of the heads a it's keys and an array as it's value. You can have multiple conditional heads in **!conditions**. This array contains the addresses of the strictly existing files required by the head as it's values.
 
+Even if there is only one required file, it has to be written into the array.
+
 ```json
 {
 	"!conditions": {
@@ -129,6 +134,67 @@ The **!conditions** JSON object has the name of the heads a it's keys and an arr
 }
 ```
 
-In this example, the Forge will only be able to execute the **build** head if the files **main.c** and **my_lib.h** are present. You can pass relative or absoulte address of the files in the array.
+In this example, Forge will only be able to execute the **build** head if the files **main.c** and **my_lib.h** are present. You can pass relative or absolute address of the files in the array.
 
 If the files do not exist, then the head(s) will disappear from the list of heads that you get by running ``forge --heads``.
+
+Extended example:
+
+```json
+{
+	"!conditions": {
+		"build": ["main.c", "my_lib.h"],
+		"clean": ["main"]
+	},
+	
+	"!heads": {
+		"build": ["gcc main.c -o main", "echo Compiled Successfully!"],
+		"clean": ["rm main", "echo Done"]
+	}
+}
+```
+
+<br>
+
+### !variables
+
+Forge allows the users to run shell commands and capture the output (stdout) of the commands inside variables.
+
+The **!variables** JSON object consists of variable name as the key and a string containing the shell command as the value. You can have multiple variables in **!variables**.
+
+These variables can be used in the **!heads** JSON object by writing ``%`` infront of the variable names.
+
+Consider a file ``data.txt`` containing just a word, ``Batman``.
+
+**data.txt**
+```
+Batman
+```
+
+Using variables in ``forgeMe.json`` file.
+
+```json
+{
+	"!variables": {
+		"dir_name": "cat data.txt"
+	},
+	
+	"!heads": {
+		"make_dir": ["mkdir %dir_name"]
+	}
+}
+```
+
+On running ``forge make_dir`` a directory named "Batman" will be created. This ``forgeMe.json`` file will read the file ``data.txt`` and put it's content inside a variable called ``dir_name``. This variable is then accessed inside a head in the **!heads** object using ``%dir_name``.
+
+If you want a variable to just have a string value instead of the stdout of a command, you can use ``echo``. Like,
+
+```json
+{
+	"!variables": {
+		"name": "echo Bruce Wayne"
+	}
+}
+```
+
+This will assign the value "Bruce Wayne" to the variable **name** like a normal variable.
