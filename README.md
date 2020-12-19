@@ -14,6 +14,7 @@ $ git clone https://www.github.com/KILLinefficiency/Forge.git
 ```
 
 <br>
+
 ### Installing Forge
 
 Forge can be compiled easily with:
@@ -30,6 +31,8 @@ $ ./install.sh
 Restart your terminal after running this script.
 
 Users running shells other than Bash can make changes to the ``install.sh`` script suitable to their shell config file.
+
+<br>
 
 ### Getting Started
 
@@ -48,10 +51,12 @@ Each of these four keys start with ``!`` and have their own JSON objects as valu
 {
 	"!settings": {},
 	"!variables": {},
+	"!conditions": {},
 	"!heads": {}
 }
 ```
 <br>
+
 #### !heads
 
 A head is a collection of shell commands which are run one by one. The ``!heads`` JSON object can contain multiple heads with an array as their values.
@@ -103,6 +108,7 @@ $ forge --heads
 ```
 
 <br>
+
 ### !conditions
 
 The **!conditions** key has a JSON object as it's value.
