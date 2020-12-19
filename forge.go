@@ -28,7 +28,8 @@ var YELLOW string = "\033[1m\033[33m"
 var DEFAULT string = "\033[0m"
 
 var defaultHead string
-var verbose bool = true
+var showSTDOUT bool = true
+var showSTDERR bool = true
 
 // keyExists() checks if a key exists in a map.
 func keyExists(reqKey string, data map[string]interface{}) bool {
@@ -81,8 +82,11 @@ func main() {
     if keyExists("default", settings) {
       defaultHead = settings["default"].(string)
     }
-    if keyExists("verbose", settings) {
-      verbose, _ = strconv.ParseBool(settings["verbose"].(string))
+    if keyExists("showSTDOUT", settings) {
+      showSTDOUT, _ = strconv.ParseBool(settings["showSTDOUT"].(string))
+    }
+    if keyExists("showSTDERR", settings) {
+      showSTDERR, _ = strconv.ParseBool(settings["showSTDERR"].(string))
     }
     // Runs a specific head after every interval.
     if keyExists("every", settings) {
@@ -176,9 +180,9 @@ func strExec(shellCommand string) {
   }
 
   // Displays command.
-  if verbose {
-    fmt.Printf("%sCOMMAND:%s %s\n", YELLOW, DEFAULT, shellCommand)
-  }
+
+  fmt.Printf("%sCOMMAND:%s %s\n", YELLOW, DEFAULT, shellCommand)
+
   // Runs a shell command.
   commandArgs := strings.Split(shellCommand, delimiter)
   commandExec := exec.Command(commandArgs[0], commandArgs[1:]...)
@@ -187,11 +191,11 @@ func strExec(shellCommand string) {
   commandExec.Stderr = &sErr
   exitCode := commandExec.Run()
   // Displays STDERR.
-  if exitCode != nil && verbose {
+  if exitCode != nil && showSTDERR {
     fmt.Printf("%sSTDERR:%s\n%s%s%s%s\n\n", RED, DEFAULT, sErr.String(), RED, exitCode, DEFAULT)
   }
   // Displays STDOUT.
-  if exitCode == nil && verbose {
+  if exitCode == nil && showSTDOUT {
     fmt.Printf("%sSTDOUT:%s\n%s\n", GREEN, DEFAULT, sOut.String())
   }
 }
