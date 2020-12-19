@@ -94,7 +94,7 @@ func main() {
       secTime, _ := strconv.Atoi(loop[0].(string))
       var everyHead string = loop[1].(string)
       if len(os.Args) > 1 {
-        if os.Args[1] == everyHead {
+        if os.Args[1] == everyHead && keyExists("!heads", forgeMe) {
           allHeads := forgeMe["!heads"].(map[string]interface{})
           headCommands := allHeads[everyHead].([]interface{})
           fmt.Printf("\n")
