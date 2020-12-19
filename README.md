@@ -5,6 +5,8 @@ Forge is an automation tool written in Go. It's much similar to GNU Make.
 
 The instructions that Forge executes are written in JSON format in a ``forgeMe.json`` or ``forgeMe`` file.
 
+Forge is intended to be used for compiling projects and work around with files related to it.
+
 <br>
 
 ## Getting Forge
@@ -158,7 +160,7 @@ Extended example:
 
 ### !variables
 
-Forge allows the users to run shell commands and capture the output (stdout) of the commands inside variables.
+Forge allows the users to run shell commands and capture the output (**stdout**) of the commands inside variables.
 
 The **!variables** JSON object consists of variable name as the key and a string containing the shell command as the value. You can have multiple variables in **!variables**.
 
@@ -198,3 +200,102 @@ If you want a variable to just have a string value instead of the stdout of a co
 ```
 
 This will assign the value "Bruce Wayne" to the variable **name** like a normal variable.
+
+<br>
+
+### !settings
+
+As the name suggests, the **!settings** object is used for specifying setting regarding the ``forgeMe.json`` file.
+
+You can have the following settings in the **!settings** object:
+
+* showSTDOUT
+* showSTDERR
+* delimiter
+* default
+* every
+
+#### showSTDOUT
+
+Forge, by default, shows the command, it's **stdout** or **stderr** on the terminal. If you don't want the **stdout** to appear, it can be disabled.
+
+```
+{
+	"!settings": {
+		"showSTDOUT": "false"
+	},
+	
+	"!heads": {
+		"show_text": ["echo I am Batman!"]
+	}
+}
+```
+
+Here, **showSTDOUT** can have two values, "**true**" or "**false**".
+
+Note that the values are supposed to be passed as strings and not as booleans.
+
+#### showSTDERR
+
+You can supress the **stderr** given out by a head.
+
+```json
+{
+	"!settings": {
+		"showSTDERR": "false"
+	},
+	
+	"!heads": {
+		"list_dir": ["ls -hello", "ls -alh"]
+	}
+}
+```
+
+#### delimiter
+
+The default delimiter for the shell commands that separates the comman-line utility from it's arguments is the space character (" ").
+
+However, the user can change the delimiter. Like,
+
+```json
+{
+	"!settings": {
+		"delimiter": "-"
+	},
+	
+	"!heads": {
+		"folders": ["mkdir-Batman-Green Arrow"]
+	}
+}
+```
+
+This ``forgeMe.json`` file uses the hyphen character (``-``)  as the delimiter instead of using  a space character and makes two folders, "Batman" and "Green Arrow".
+
+#### default
+
+Forge executes one or more heads only when they are passed as command-line arguments to it.
+
+However, Forge is also capable of executing a default head if no heads are passed as command-line arguments.
+
+This default head can be specified by the user. Like,
+
+```json
+{
+	"!settings": {
+		"default": "get_date"
+	},
+	
+	"!heads": {
+		"build": ["gcc main.c -o main"],
+		"get_date": ["date"]
+	}
+}
+```
+
+On running Forge without any arguments, like,
+
+```
+$ forge
+```
+
+the **get_date** head will be executed automatically as no heads are specified in the command-line arguments.
