@@ -3,7 +3,7 @@
 <br>
 Forge is an automation tool written in Go. It's much similar to GNU Make.
 
-The instructions that Forge executes are written in JSON format in a ``forgeMe.json`` or ``forgeMe`` file.
+The instructions that Forge executes are written in JSON format in a ``forgeMe.json`` or ``forgeMe`` file. The ``forgeMe.json`` or ``forgeMe`` file should exist in the directory where ``forge`` is run.
 
 Forge is intended to be used for compiling projects and work around with files related to it.
 
@@ -320,8 +320,62 @@ Like,
 }
 ```
 
-Running ``forge build`` will run the **build** head after every 10 seconds.
+Running ``forge build`` will keep executing the **build** head after every 10 seconds.
 
 <br>
 
-## Using Pipes, Redirections and other shell related operations.
+## Using Pipes, Redirections and other shell related operations
+
+Forge can't execute shell commands containing symbols like, ``|``, ``>``, ``>>``, ``;``, ``&&`` and ``||``.
+
+This is because everything except for the command name is treated as arguments to that command and these symbols make invalid arguments.
+
+Like,
+
+**Wrong Example**
+
+```json
+{
+	"!heads": {
+		"proc": ["ps -A | grep atom"]
+	}
+}
+```
+
+The **proc** head in this ``forgeMe.json`` file uses a pipe in it's shell command. This is invalid and ``ps`` will throw an error about it.
+
+However, there is a way to make this work.
+
+This involves changing the delimiter and passing the shell command as a string to a shell inside the ``forgeMe.json`` file.
+
+Running:
+```
+ps -A | grep atom
+```
+
+is equivalent to running:
+```
+sh -c "ps -A | grep atom"
+```
+
+This can be used in the ``forgeMe.json`` file.
+
+Like,
+
+**Correct Example**
+
+```json
+{
+	"!settings": {
+		"delimiter": ","
+	},
+	
+	"!heads": {
+		"proc": ["sh,-c,ps -A | grep atom"]
+	}
+}
+```
+
+This example uses comma (``,``) as delimiter and works as expected.
+
+Note that there should be not space character before and after the comma (``,``).
