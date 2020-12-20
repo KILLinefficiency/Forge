@@ -282,12 +282,12 @@ This default head can be specified by the user. Like,
 ```json
 {
 	"!settings": {
-		"default": "get_date"
+		"default": "build"
 	},
 	
 	"!heads": {
 		"build": ["gcc main.c -o main"],
-		"get_date": ["date"]
+		"clean": ["rm main"]
 	}
 }
 ```
@@ -298,4 +298,30 @@ On running Forge without any arguments, like,
 $ forge
 ```
 
-the **get_date** head will be executed automatically as no heads are specified in the command-line arguments.
+the **build** head will be executed automatically as no heads are specified in the command-line arguments.
+
+#### every
+
+You can also execute a head after every specific interval.
+
+The **every** key has an array of strings as it's value. The first element of the array is the seconds (specified as a string) you want to run a head and the second element is the head which is needed to be run.
+
+Like,
+
+```json
+{
+	"!settings": {
+		"every": ["10", "build"]
+	},
+	
+	"!heads": {
+		"build": ["gcc main.c -o main"]
+	}
+}
+```
+
+Running ``forge build`` will run the **build** head after every 10 seconds.
+
+<br>
+
+## Using Pipes, Redirections and other shell related operations.
