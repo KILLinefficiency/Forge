@@ -2,9 +2,9 @@
 
 <br>
 Forge is an automation tool written in Go. It's much similar to GNU Make.
-
+<br>
 The instructions that Forge executes are written in JSON format in a ``forgeMe.json`` or ``forgeMe`` file. The ``forgeMe.json`` or ``forgeMe`` file should exist in the directory where ``forge`` is run.
-
+<br>
 Forge is intended to be used for compiling projects and work around with files related to it.
 
 <br>
@@ -39,7 +39,7 @@ Users running shells other than Bash can make changes to the ``install.sh`` scri
 
 ## Getting Started
 
-Forge instructions are written in JSON format. These instructions are to be specified in a ``forgeMe.json`` or ``forgeMe`` file. Forge searches for the ``forgeMe.json`` file if files with both names are present in the directory.
+Forge instructions are written in JSON format. These instructions are to be specified in a ``forgeMe.json`` or ``forgeMe`` file. Forge searches for the ``forgeMe.json`` first.
 
 The ``forgeMe.json`` file consists of four keys:
 
@@ -76,7 +76,7 @@ A head is a collection of shell commands which are run one by one. The ``!heads`
 }
 ```
 
-Even if a head contains a single shell command, it has to be specified in am array.
+Even if a head contains a single shell command, it has to be specified in an array.
 
 These heads can be run by calling Forge and specifying the heads as the command-line arguments. Like,
 
@@ -120,9 +120,9 @@ The **!conditions** key has a JSON object as it's value.
 
 **!conditions** allows a head to be executed only if specified files are present on the system. If all of the specified files are not present then the head will just be deleted.
 
-The **!conditions** JSON object has the name of the heads a it's keys and an array as it's value. You can have multiple conditional heads in **!conditions**. This array contains the addresses of the strictly existing files required by the head as it's values.
+The **!conditions** JSON object has the name of the heads as it's keys and an array as it's value. You can have multiple conditional heads in **!conditions**. This array contains the addresses of the strictly existing files required by the head.
 
-Even if there is only one required file, it has to be written into the array.
+Even if there is only one required file, it has to be written in an array.
 
 ```json
 {
@@ -136,7 +136,7 @@ Even if there is only one required file, it has to be written into the array.
 }
 ```
 
-In this example, Forge will only be able to execute the **build** head if the files **main.c** and **my_lib.h** are present. You can pass relative or absolute address of the files in the array.
+In this example, Forge will only be able to execute the **build** head if the files **main.c** and **my_lib.h** are present. You can pass relative or absolute addresses of the files in the array.
 
 If the files do not exist, then the head(s) will disappear from the list of heads that you get by running ``forge --heads``.
 
@@ -189,7 +189,7 @@ Using variables in ``forgeMe.json`` file.
 
 On running ``forge make_dir`` a directory named "Batman" will be created. This ``forgeMe.json`` file will read the file ``data.txt`` and put it's content inside a variable called ``dir_name``. This variable is then accessed inside a head in the **!heads** object using ``%dir_name``.
 
-If you want a variable to just have a string value instead of the stdout of a command, you can use ``echo``. Like,
+If you want a variable to just have a string value instead of the **stdout** of a command, you can use ``echo``. Like,
 
 ```json
 {
@@ -237,7 +237,7 @@ Note that the values are supposed to be passed as strings and not as booleans.
 
 #### showSTDERR
 
-You can supress the **stderr** given out by a head.
+You can supress the **stderr** given out by the heads.
 
 ```json
 {
@@ -253,7 +253,7 @@ You can supress the **stderr** given out by a head.
 
 #### delimiter
 
-The default delimiter for the shell commands that separates the comman-line utility from it's arguments is the space character (" ").
+The default delimiter for the shell commands that separates the command-line utility and it's arguments is the space character (" ").
 
 However, the user can change the delimiter. Like,
 
@@ -304,7 +304,9 @@ the **build** head will be executed automatically as no heads are specified in t
 
 You can also execute a head after every specific interval.
 
-The **every** key has an array of strings as it's value. The first element of the array is the seconds (specified as a string) you want to run a head and the second element is the head which is needed to be run.
+The **every** key has an array of two strings as it's value.
+
+The first element of the array is the interval (in seconds) (specified as a string) you want a head to be run after. The second element is the name of the head which is needed to be run.
 
 Like,
 
@@ -378,4 +380,4 @@ Like,
 
 This example uses comma (``,``) as delimiter and works as expected.
 
-Note that there should be not space character before and after the comma (``,``).
+Note that there should be no space character before and after the comma (``,``).
