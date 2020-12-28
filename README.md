@@ -3,7 +3,9 @@
 <br>
 Forge is an automation tool written in Go. It's much similar to GNU Make.
 <br>
+
 The instructions that Forge executes are written in JSON format in a ``forgeMe.json`` or ``forgeMe`` file. The ``forgeMe.json`` or ``forgeMe`` file should exist in the directory where ``forge`` is run.
+
 <br>
 Forge is intended to be used for compiling projects and work around with files related to it.
 
